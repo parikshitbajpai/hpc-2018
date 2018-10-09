@@ -1,7 +1,7 @@
 !------------------------Matrix Vector Multiplication--------------------!
 !   This code executes matrix-vector multiplication using double loops.  !
 
-!    Note: The matrix size in this program has been fixed to 8192*8192   !
+!   Note: The matrix size in this program has been fixed to 16384*16384  !
 
 module globals
   ! Globally used stuff
@@ -38,8 +38,8 @@ implicit none
 integer :: i,j,p
 double precision :: wtime,begin,end
 
-! Set matrix size to 2^13 = 8192. Edit p to change matrix size
- p=13
+! Set matrix size to 2^14 = 16384. Edit p to change matrix size
+ p=14
  n=2**p
 
 ! Allocate and de-allocate inside the loop

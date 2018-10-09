@@ -2,7 +2,10 @@
 
 6030G: High Performance Computing
 Assignment 1: The matrix-vector product.
-Parikshit Bajpai
+
+Submitted to Prof. Lennaert Van Veen
+
+Submitted by Parikshit Bajpai (Student ID - 100693928)
 
 
 ### Source Codes ###
@@ -11,11 +14,11 @@ This repository consists of the following four source codes:
 
 *  matvec.f90 for double loop implementation of matrix vector multiplication. This program runs the double loop for different matrix sizes.
 
-* matvec_omp.f90 for double loop implementation with parallelisation using OpenMP directives. The matrix size was fixed to 8192.
+* matvec_omp.f90 for double loop implementation with parallelisation using OpenMP directives. The matrix size was fixed to 16384.
 
-* matvec_BLAS.f90 for BLAS library implementation of matrix vector multiplication. The matrix size was fixed to 8192.
+* matvec_BLAS.f90 for BLAS library implementation of matrix vector multiplication. The matrix size was fixed to 16384.
 
-* matvec_omp_BLAS.f90 for BLAS library implementation with parallelisation using OpenMP directives. The matrix size was fixed to 8192.
+* matvec_omp_BLAS.f90 for BLAS library implementation with parallelisation using OpenMP directives. The matrix size was fixed to 16384.
 
 * The matrix size can be edited by editing the variable p in the source code. The matrix size would be equal to n = 2^p.
 
