@@ -1,6 +1,7 @@
 # README #
 
 6030G: High Performance Computing
+
 Assignment 1: The matrix-vector product.
 
 Submitted to Prof. Lennaert Van Veen
@@ -12,7 +13,7 @@ Submitted by Parikshit Bajpai (Student ID - 100693928)
 
 This repository consists of the following four source codes:
 
-*  matvec.f90 for double loop implementation of matrix vector multiplication. This program runs the double loop for different matrix sizes.
+* matvec.f90 for double loop implementation of matrix vector multiplication. This program runs the double loop for different matrix sizes.
 
 * matvec_omp.f90 for double loop implementation with parallelisation using OpenMP directives. The matrix size was fixed to 16384.
 
