@@ -1,3 +1,13 @@
+!-----------------------------------Langevin Dynamics with Non-Interacting Particles and Single Thread--------------------------------------!
+!                                                                                                                                           !
+! Important Parameters                                                                                                                      !
+!        Number of Particle - n (Set to 1000 by default)                                                                                    !
+!        Time step - dt (Set to 0.01 by default)                                                                                            !
+!        Boltzmann constant times temperature - kT (Set to 1.00 by default)                                                                 !
+!        Mass of Particle - m (Set to 1.00 by default)                                                                                      !
+!                                                                                                                                           !
+!-------------------------------------------------------------------------------------------------------------------------------------------!
+
 module globals
 ! Global variables
 implicit none
@@ -27,7 +37,7 @@ pref2=sqrt(24d0*kT*g/dt)
 
 end subroutine set_parameters
 subroutine initialize_particles
-integer :: i
+integer :: i  
 double precision :: ran1,ran2,gr1,gr2
 ! Give particles initial position and velocity
 do i=1,n
@@ -61,7 +71,7 @@ use globals
 use Langevin
 use BC
 implicit none
-integer :: i
+integer :: i,skip
 double precision :: t,t_max,ran1,ran2,m1,m2
 double precision :: wtime,begin,end
 
@@ -74,6 +84,7 @@ allocate(x(n),y(n),vx(n),vy(n),ax(n),ay(n),vhx(n),vhy(n))
 
 t=0d0
 t_max=100d0
+skip=50
 
 call set_parameters
 call initialize_particles
@@ -103,7 +114,7 @@ do while(t.lt.t_max)
       vy(i)=vhy(i)+0.5*ay(i)*dt
    end do
    t=t+dt
-   do i=1,n
+   do i=1,n,skip
       write(11,*) x(i),y(i)
    end do
    write(11,*) ''

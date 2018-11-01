@@ -62,7 +62,7 @@ Marcos Machado, Celina Desbiens and myself worked together on building the codes
 \section{Results and Discussion}
 \textbf{(1)}\quad The mass, space and time scales can be defined for the  Langevin equation in terms of the system parameters as follows: \[Mass scale [s] = m\]  \[Time scale [s] = \frac{m}{\gamma}\]  \[Space scale [s] = \frac{\sqrt{m}\cdot c}{\sqrt{\gamma^3}}\]
 
-Since, for the purpose of numerical approximation, \(m\) and \(k_B T\) play the role in scaling and do not affect the nature of the stochastic equation, we can set them both equal to 1 in the code. This does not affect the behaviour that we want to observe which relates to the time scale.
+Since, for the purpose of numerical approximation, \(m\) and \(k_B T\) play a role only in scaling and do not affect the nature of the stochastic equation, we can set them both equal to 1 in the code. This does not affect the behaviour that we want to observe which relates to the time scale.
 
 The additional dimensionless parameter when considering a closed box of dimension \(L \times L\) arises from the \(\gamma\) term which inherently contains a length scale related to the radius of the Brownian particles and when the domain gets contrained, the factor L alongwith \(\gamma\) results in a new dimensionless constant.
 
@@ -80,8 +80,8 @@ A direct comparison of the two codes can be performed in terms of the speed-up. 
     \cmidrule{3-4} \cmidrule{6-7}
     &\phantom{abc} & {Serial} & {Parallel} & \phantom{abc} & {Speed-up} & {Efficiency}\\
     \midrule
-    O0 && 0 & 0 && 0 & 0\\
-    O3 && 0 & 0 && 0 & 0\\
+    O0 && 1.158 & 1.015 && 1.141 & 0.779\\
+    O3 && 0.893 & 0.5730 && 1.559 & 0.570\\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -122,12 +122,10 @@ The additional line in the code writes the velocity correlation at each time ste
 	\end{figure} 
 
 
-        However, we also notice that the speed up did not increase linearly when the number of threads was increased from 2 to 4. Such a non-linear increase can, most probably, be attributed to increase in overheads as the number of threads is increased. Use of the BLAS library with \textit{gfortran} compiler resulted in the most significant increase in speed up. However, the wall times using OpenMP and BLAS concurrently were higher than the wall times obtained using them individually. For the sake of brevity, these results, therefore, have not been presented. They can, however, be viewed by running the shell script \textit{run.sh} in the repository.
-
- 
+        
 
 \section{Conclusion}
-In the present exercise, the impact of parallelisation on the code was analysed using speed-up and efficiency and a number of test cases were developed. It was observed that the boc size dictates the behaviour observed in the simulations and therefore the box must be sufficiently large and the time sufficiently long to observe the expected behaviour. A number of test cases were developed to analyse the performance and the velocity correlation function was computed and the expected behaviour was observed. 
+In the present exercise, the impact of parallelisation on the code was analysed using speed-up and efficiency and a number of test cases were developed. It was observed that the box size dictates the behaviour observed in the simulations and therefore the box must be sufficiently large and the time sufficiently long to observe the expected behaviour. A number of test cases were developed to analyse the performance and the velocity correlation function was computed and the expected behaviour was observed.                    
 
 \bibliographystyle{ieeetr}
 \bibliography{Assignment_1_Parikshit}

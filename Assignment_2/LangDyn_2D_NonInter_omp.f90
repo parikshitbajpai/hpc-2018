@@ -70,7 +70,7 @@ call set_parameters
 call initialize_particles
 dt2=dt/2d0
 t0=omp_get_wtime()
-! skip=50
+skip=50
 
 !$omp parallel
 do while(t.lt.t_max)
@@ -80,7 +80,7 @@ do while(t.lt.t_max)
    !$omp sections firstprivate(t),lastprivate(t)
    !$omp section
    ! write to disk
-   do i=1,n!,skip
+   do i=1,n,skip
       write(11,*) x_temp(i),y_temp(i)
    end do
    write(11,*) ''
