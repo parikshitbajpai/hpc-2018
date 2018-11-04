@@ -52,7 +52,7 @@ double precision :: wtime,begin,end
 	
    !$omp parallel
    begin=omp_get_wtime()
-   !$omp do private(i)
+   !$omp do private(i,j)
    do i=1,n
       w(i)=0d0
       do j=1,n
