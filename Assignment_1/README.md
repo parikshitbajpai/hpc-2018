@@ -35,5 +35,5 @@ This repository consists of the following five source codes which are in the dir
 * Note: The shell commands include the paths to the OpenMP directives and  BLAS library and might be different for the machine the code is compiled on. Please edit the path if required.
 
 ### Latex Files ###
-* The tex file, bib file and required images are in the folder Report.
+* The tex file, bib file and required images are in the folder Latex.
 * The report is in the Assignment_1 folder and named Assignment_1_Parikshit
