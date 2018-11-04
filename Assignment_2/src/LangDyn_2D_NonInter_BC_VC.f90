@@ -90,7 +90,7 @@ use globals
 use Langevin
 use BC
 implicit none
-integer :: i
+integer :: i, skip
 double precision :: t,t_max,ran1,ran2,m1,m2
 double precision :: wtime,begin,end
 
@@ -106,6 +106,7 @@ allocate(x(n),y(n),vx(n),vy(n),ax(n),ay(n),vhx(n),vhy(n),x0(n),y0(n),vx0(n),vy0(
 
 t=0d0
 t_max=100d0
+skip=50
 
 call set_parameters
 call initialize_particles
@@ -135,7 +136,7 @@ do while(t.lt.t_max)
       vy(i)=vhy(i)+0.5d0*ay(i)*dt
    end do
    t=t+dt
-   do i=1,n
+   do i=1,n,skip
       write(11,*) x(i),y(i)
    end do
    write(11,*) ''
