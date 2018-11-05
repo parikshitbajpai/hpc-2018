@@ -42,8 +42,8 @@ double precision :: wtime,begin,end
 p=14
 n=2**p
 
-! Allocate and de-allocate inside the loop
-   allocate(A(n,n),v(n),w(n))
+! Allocate the variables.
+allocate(A(n,n),v(n),w(n))
    
    call make_random_matrix
    call make_random_vector
