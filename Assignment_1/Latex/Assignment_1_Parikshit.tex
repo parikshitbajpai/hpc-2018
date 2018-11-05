@@ -4,7 +4,8 @@
 %\geometry{landscape}                		% Activate for rotated page geometry
 %\usepackage[parfill]{parskip}    		% Activate to begin paragraphs with an empty line rather than an indent
 \usepackage{graphicx}				% Use pdf, png, jpg, or eps§ with pdflatex; use eps in DVI mode
-								% TeX will automatically convert eps --> pdf in pdflatex		
+\usepackage{multirow}
+\usepackage{booktabs}	
 \usepackage{amssymb}
 
 
@@ -18,7 +19,7 @@
 \section{Introduction}
 Computing, in today's world, has radically changed since the days of Konrad Zuse who constructed the world's first fully automated, freely   programmable computer with binary floating-point arithmetic in 1941 \cite{Rojas:2002aa}.  Zuse's  great visions regarding the possible use of his device are now a reality, and computers, owing to their computational abilities at an incredible, ever-increasing speed, have become essential, not only in science and engineering but in all sectors of life \cite{Zuse:1993aa}.
 
-As an essential tool for most research areas, both in academia and industry, computer-based simulations have become ever-present standard tools. However, even with the rapid increase in the performance of desktop machines, there still remain tasks with requirements on raw computational speed, storage, or main memory which require dedicated computational frameworks \cite{Hager:2010aa}. High Performance Computing, in general, refers to the practice of clustering computing power in a way that delivers much higher performance than one could get out of a typical desktop computer or workstation in order to solve large problems in science, engineering, or business \cite{insidehpc:aa}.
+As an essential tool for most research areas, both in academia and industry, computer-based simulations have become ever-present standard tools. With the rapid increase in the performance of computating systems, more and more problems of scientific interest come within our reach. Many of these problems have requirements for raw computational speed, storage, or main memory which can only be met by dedicated computational frameworks \cite{Hager:2010aa}. High Performance Computing, in general, refers to the practice of clustering computing power in a way that performs computations at significantly faster speeds than one could get out of a typical desktop computer or workstation in order to solve large problems in science, engineering, or business \cite{insidehpc:aa}.
 
 In times of stagnating single processor capabilities and increasing parallelism, there has been a growing focus on the performance and scalability, and the most sensible measure of performance in benchmarking is the \textit{wallclock time}, also called \textit{elapsed time} \cite{Hager:2010aa}. In order to reduce wallclock times, HPC systems rely on a few techniques such as parallelisation, compiler optimisation, and use of standard libraries.
 
@@ -47,8 +48,8 @@ The present study is aimed at exploring the impact of code, compiler and executi
 In order to obtain a reference performance benchmark, the standard double-loop code for matrix-vector multiplication was implemented without optimisation and parallelisation and compiled using the GNU compiler \textit{gfortran}, and the matrix size for which the wall time obtained was of the order of 10 seconds was selected for further study. The matrix size corresponding to the aforementioned wall time was \(8192\times8192\). Once the matrix size was fixed, compiler optimisation, parallelisation and use of standard library was implemented and the obtained wall times were compared with that obtained for the double loop without optimisation case. For this purpose, the following primary cases and their combinations were considered:
 \begin{enumerate}
 	\item{Choice of compiler: GNU \textit{gfortran} or Intel \textit{ifort}}
-	\item{Compiler optimisation: no optimisation (-o0) or aggressive optimisation (-o3)}
-	\item{Parallelisation: 1, 2 or 3 OpenMP threads}
+	\item{Compiler optimisation: no optimisation (-O0) or aggressive optimisation (-O3)}
+	\item{Parallelisation: 1, 2 or 4 OpenMP threads}
 	\item{Matrix multiplication approach: double loop or BLAS standard library}
 \end{enumerate}
 
@@ -57,21 +58,46 @@ The BLAS (Basic Linear Algebra Subprograms) are routines that provide standard b
 Ibrahim Guiagoussou, Marcos Machado, Celina Desbiens and myself worked together on building the codes, executing and interpreting the results. 
 	
 \section{Results and Discussion}
-The source code was run for a number of different cases presented above and the obtained results have been presented in Figure~\ref{results}. The results highlight that the wall times obtained using the Intel compiler are significantly less than those obtained using the  GNU compiler. This can attributed to the optimisation of Intel compilers for systems using Intel processors and the high-level techniques used by the compiler to reduce stalls and produce codes that execute in the fewest possible number of cycles \cite{Corporation:2018aa}. 
-	\begin{figure}[h]
-		\centering
-		\includegraphics[width=\textwidth]{Results}
-		\caption{Wall time [s], speed up and efficiency for the considered cases.}
-		\label{results}
-	\end{figure} 
-Parallelisation was implemented using OpenMP directives and we observe a significant reduction in the wall times as the number of threads was increased. However, we also notice that the speed up did not increase linearly when the number of threads was increased from 2 to 4. Such a non-linear increase can, most probably, be attributed to increase in overheads as the number of threads is increased. Use of the BLAS library with \textit{gfortran} compiler resulted in the most significant increase in speed up. However, the wall times using OpenMP and BLAS concurrently were higher than the wall times obtained using them individually. For the sake of brevity, these results, therefore, have not been presented. They can, however, be viewed by running the shell script \textit{run.sh} in the repository.
+The source code was run for a number of different cases presented above and the obtained results have been presented in Table~\ref{tab:times}. The results highlight that the wall times obtained using the Intel compiler are significantly less than those obtained using the  GNU compiler. This can attributed to the optimisation of Intel compilers for systems using Intel processors and the high-level techniques used by the compiler to reduce stalls and produce codes that execute in the fewest possible number of cycles \cite{Corporation:2018aa}.
+\begin{table}[htp]
+\caption{Matrix vector multiplication wall times [s] for the different approaches under study.}
+\label{tab:times}
+\centering
+\begin{tabular}{@{}lcccccr@{}}
+\toprule
+                                & \multicolumn{1}{l}{} & \multirow{2}{*}{\textbf{Double Loop}} & \multicolumn{3}{c}{\textbf{Open MP}} & \multicolumn{1}{c}{\multirow{2}{*}{\textbf{BLAS}}} \\ \cmidrule(lr){4-6}
+                                & \multicolumn{1}{l}{} &                                       & \textbf{1} & \textbf{2} & \textbf{4} & \multicolumn{1}{c}{}                               \\ \midrule
+\multirow{2}{*}{\textbf{GNU}}   & \textbf{O0}          & 12.757                                & 12.731     & 07.669     & 05.652     & 00.190                                             \\
+                                & \textbf{O3}          & 12.950                                & 12.887     & 07.862     & 05.824     & 00.198                                             \\
+\multirow{2}{*}{\textbf{INTEL}} & \textbf{O0}          & 17.028                                & 17.019     & 08.808     & 07.475     & 00.190                                             \\
+                                & \textbf{03}          & 00.170                                & 00.167     & 00.143     & 00.142     & 00.191                                             \\ \bottomrule
+\end{tabular}
+\end{table}
 
-Interestingly, when using BLAS library, we observe that the wall times achieved using \textit{gfortran} compiler were lower than those obtained using \textit{ifort} compiler. In fact, when compared with the double loop code compiled with the relevant compiler, the speed up obtained using BLAS and \textit{gfortran} compiler was around two orders of magnitude higher than the speed up obtained using BLAS and \textit{ifort}. 
+\begin{table}[htp]
+\caption{Speed-up and efficiency of parallelisation}
+\label{tab:su}
+\centering
+\begin{tabular}{@{}lccccr@{}}
+\toprule
+                                & \multicolumn{1}{l}{} & \multicolumn{4}{c}{\textbf{Open MP}}                                                                  \\ \cmidrule(l){3-6} 
+                                & \multicolumn{1}{l}{} & \multicolumn{2}{c}{\textbf{2}}          & \multicolumn{2}{c}{\textbf{4}}                              \\ \cmidrule(l){3-6} 
+                                & \multicolumn{1}{l}{} & \textbf{Speed-up} & \textbf{Efficiency} & \textbf{Speed-up} & \multicolumn{1}{c}{\textbf{Efficiency}} \\ \midrule
+\textbf{GNU}                    & \textbf{O0}          & 1.663             & 0.832               & 2.257             & 0.564                                   \\
+                                & \textbf{O3}          & 1.647             & 0.824               & 2.224             & 0.556                                   \\
+\multirow{2}{*}{\textbf{INTEL}} & \textbf{O0}          & 1.933             & 0.966               & 2.278             & 0.569                                   \\
+                                & \textbf{03}          & 1.189             & 0.594               & 1.197             & 0.299                                   \\ \bottomrule
+\end{tabular}
+\end{table}
+
+Parallelisation was implemented using OpenMP directives and we observe a significant reduction in the wall times as the number of threads was increased. However, as presented in Table~\ref{tab:su}, we also notice that the speed up did not increase linearly when the number of threads was increased from 2 to 4. Such a non-linear increase can, most probably, be attributed to increase in overheads as the number of threads is increased. Use of the BLAS library with \textit{gfortran} compiler resulted in the most significant decrease in wall time in absolute terms. However, the wall times using OpenMP and BLAS concurrently were not studied. This can be justified using the fact that BLAS code calls a single subroutine, \textit{DGEMV}, for the matrix-vector multiplication and parallelising a single function call does not make any practical sense. Furthermore, BLAS is a higly optimised library which is itself a benchmark for performance tests and no valuable information will be achieved evn if we use OpenMP directives in the BLAS code.
+
+Interestingly, when using BLAS library, we observe that the wall times achieved using \textit{gfortran} compiler were lower than those obtained using \textit{ifort} compiler without optimisation. The minimum wall-times were, however, acheved using double-loop with OpenMp directives and compiled using Intel compiler with aggressive optimisation.   
 
 \section{Conclusion}
-In general, the impact of compiler optimisation, parallelisation, and use of standard library on the performance is evident from the obtained results. The results of the different cases reveal that, as foreseen, the Intel \textit{ifort} compiler is more efficient than the GNU \textit{gfortran} compiler. Furthermore, we observe that both parallelisation and use of standard library significantly speeds up the code. The tests highlight the importance of the aforementioned ways of improving the performance of codes developed for HPC and show how these can be used individually and in conjunction with each other to achieve the best possible performance from the available. computing device. 
+In general, the impact of compiler optimisation, parallelisation, and use of standard library on the performance is evident from the obtained results. The results of the different cases reveal that, as foreseen, the Intel \textit{ifort} compiler is more efficient than the GNU \textit{gfortran} compiler. Furthermore, we observe that both parallelisation and use of standard library significantly speeds up the code. The tests highlight the importance of the aforementioned ways of improving the performance of codes developed for HPC and show how these can be used individually and in conjunction with each other to achieve the best possible performance from the available computing device. In conclusion, we can say that, in this specific case, the double-loop code with Intel compiler and aggressive optimisation was the fastest. However, in general, BLAS library offers a much more reliable method of matrix-vector multiplication and performs equally well with both the compilers under consideration and for both the optimisation methods. Therefore, using BLAS and LAPACK libraries should be the preferable method for matrix-vector multiplication. 
 
-\bibliographystyle{ieeetr}
+\bibliographystyle{unsrt}
 \bibliography{Assignment_1_Parikshit}
 
 \end{document}  
