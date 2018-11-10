@@ -1,0 +1,13 @@
+Fix what you can and re-submit by Tuesday 13th.
+
+* Code:
+- Do expand your script to make it reproduce the test data. Right now it only does one compilation and run - although the source file is in another directory. You can simply use the -O3 flag.
+- For v below eq 1, perhaps you mean $\mathbb{R}^2$? 
+
+Report:
+- "Since, for the purpose of numerical approximation" Only for the purpose of numerical approximation? So if we wanted to solve the equation by had, like Langevin does, in a sense, we cannot set them to unity?
+- "the radius of the Brownian particles" The particles have no radius. The particle size is introduced when we consider excluded volume interaction. Find out what interpretation the length scale you found has!
+- The efficiency depends a lot on the amount of data written, regulated by SKIP. Explore how you can set SKIP to balance the load between the two threads.
+- "the number of particles lost during the simulation must be reasonably small" You can estimate how small. In order to lose a particle, its speed must be greater than L/dt. You know the forces are randomly distributed with a known standard deviation. You will probably find that in your simulations you should never lose a particle.
+- Plot the autocorrelation function such that it appears as a straight line!
+- Make your tests as quantitative as possible. When does the cross-over from ballistic to diffusive occur? At what level should the RMS displacement saturate? What should be the slope of the autocorrelation function (plotted on the right scale)? Et cetera.
