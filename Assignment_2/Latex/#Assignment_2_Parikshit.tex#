@@ -51,7 +51,7 @@ The objective of this study is to analyze the non-interacting particle Brownian 
 
 \subsection{Machine Configuration}
 	\textbf{Manufacturer \& Model}: Lenovo ThinkPad Yoga 370\\
-	\textbf{Processor}: Intel Core i5 -7200U (4 processor cores)\\
+	\textbf{Processor}: Intel Core i5 -7200U (2 physical cores, 2 hyperthreads)\\
 	\textbf{Clock Rate}:  2.50 GHz\\
 	\textbf{RAM}:  16 GB\\
 	\textbf{Operating System}: Ubuntu 18.04\\
