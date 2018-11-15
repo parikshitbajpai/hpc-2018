@@ -8,6 +8,7 @@
 \usepackage{listings}
 \usepackage{color}
 \usepackage{multirow}
+\usepackage{siunitx}
 
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
@@ -39,34 +40,47 @@
 \maketitle
 
 \section{Introduction}
-In 1908, Paul Langevin successfully applied Newtonian dynamics to a Brownian particle to come up with what is now called as the 'Langevin equation', the stochastic physics equivalent to the second law of motion (\(F=ma\)). This stochastic differential equation is applicable to continous Markov processes and shows that the root mean square dispalcement of a Brownian particle is proportional to the square root of time. The Langevin equation contains both viscous and random forces with the two forces related by the  fluctuation-dissipation theorem. In the modern notation, Langevin equation takes the following form:     
+In 1908, Paul Langevin successfully applied Newtonian dynamics to a Brownian particle to come up with what is now called as the 'Langevin equation', the stochastic physics equivalent to the second law of motion (\(F=ma\)). This stochastic differential equation is applicable to continous Markov processes and shows that the root mean square dispalcement of a Brownian particle is proportional to the square root of time. The Langevin equation contains both viscous and random forces with the two forces related by the fluctuation-dissipation theorem. In the modern notation, Langevin equation takes the following form:     
   \begin{equation} \label{Langevin}
     m\,dv = - \gamma\,v\,dt + \sqrt{dt}\,c\,\eta(t) 
   \end{equation}
-where the velocity of the particle, \(v \in \mathbb{R}^2\) in a two-dimensional space, \(\gamma\)  denotes the viscosity contribution of the force, and the random force variable \(\eta\) is drawn from a standard normal distribution. The random force  coefficient equals, from the fluctuation-dissipation theorem, \(c = \sqrt{2 \gamma k_B T}\), where \(k_B\) is the Boltzmann constant and T is the temperature.  
+  where the velocity of the particle, \(v \in \mathbb{R}^2\) in a two-dimensional space, \(\gamma\)  denotes the viscosity contribution of the force, and the random force variable \(\eta\) is drawn from a standard normal distribution. The random force  coefficient equals, from the fluctuation-dissipation theorem, \(c = \sqrt{2 \gamma k_B T}\), where \(k_B\) is the Boltzmann constant and T is the temperature.
 
+set  In Langevin dynamics, at short time scales, i.e. \(t \ll \tau_p \), where \(\tau_p =  m / \gamma \) is the momentum relaxation time of particles, the dynamics of a Brownian particle is dominated by its inertia, and, the motion is this region is termed as \textit{ballistic Brownian motion}. At larger time scales, i.e.  \(t \gg  \tau_p\),  \textit{diffusive Brownian motion}
+  
 \section{Methodology}
 \subsection{Objective}
 The objective of this study is to analyze the non-interacting particle Brownian motion and analyze the simlifying assumptions adopted in the implementation, assess the requirements for parallelization and study their implementation, and to develop test cases to verify the implementation. 
 
 \subsection{Machine Configuration}
 	\textbf{Manufacturer \& Model}: Lenovo ThinkPad Yoga 370\\
-	\textbf{Processor}: Intel Core i5 -7200U (4 processor cores)\\
+	\textbf{Processor}: Intel Core i5 -7200U (2 physical cores, 2 hyperthreads)\\
 	\textbf{Clock Rate}:  2.50 GHz\\
 	\textbf{RAM}:  16 GB\\
 	\textbf{Operating System}: Ubuntu 18.04\\
 	
+\subsection{Implementation}
+The Langevin equation was discretised using the Velocity Verlet algorithm, which is similar to the Leapfrog method, except that the velocity and position are calculated at the same value of the time variable. The mathematical formulation of the algorithm is shown below.
+\begin{equation}
+  \begin{split}
+    \mathbf{x}(t + \Delta t) &= \mathbf{x}(t) +  \mathbf{v}(t)\Delta t + \frac{1}{2} \mathbf{a}(t) \Delta t^2 \\
+    \mathbf{v}(t + \Delta t) &= \mathbf{v}(t) + \frac{\mathbf{a}(t) + \mathbf{a}(t+\Delta t)}{2} \Delta t \\
+  \end{split}
+\end{equation}
+
+The algorithm was implemented for both serial and parallel computing approaches and the major differences between the two codes have been discussed in the following section.    
 
 Marcos Machado, Celina Desbiens and myself worked together on building the codes, executing and interpreting the results. 
 	
 \section{Results and Discussion}
-\textbf{(1)}\quad The mass, space and time scales can be defined for the  Langevin equation in terms of the system parameters as follows: \[Mass scale [s] = m\]  \[Time scale [s] = \frac{m}{\gamma}\]  \[Space scale [s] = \frac{\sqrt{m}\cdot c}{\sqrt{\gamma^3}}\]
+\textbf{(1)}\quad The mass, space and time scales can be defined for the  Langevin equation in terms of the system parameters as follows: \[Mass scale \, [\si{\kilo\gram}] = m\]  \[Time scale \, [\si{\second}] = \frac{m}{\gamma}\]  \[Space scale \, [\si{\metre}] = \frac{\sqrt{m}\cdot c}{\sqrt{\gamma^3}}\] When the domain is bounded within a closed box of dimension \(L \times L\), the length scale gets scaled and we obtain an additional non-dimensionless term, \(\frac{\sqrt{m}\cdot c}{L\cdot\sqrt{\gamma^3}}\). Physically, this results in the saturation of the root mean square displacement  and a plateau is obtained beyond the diffusive region.
 
-Since, for the purpose of numerical approximation, \(m\) and \(k_B T\) play a role only in scaling and do not affect the nature of the stochastic equation, we can set them both equal to 1 in the code. This does not affect the behaviour that we want to observe which relates to the time scale.
-
-The additional dimensionless parameter when considering a closed box of dimension \(L \times L\) arises from the \(\gamma\) term which inherently contains a length scale related to the radius of the Brownian particles and when the domain gets contrained, the factor L alongwith \(\gamma\) results in a new dimensionless constant.
-
-
+For Langevin dynamics, the mean square displacement can be given by the following expression:
+\begin{equation}
+  \langle{x^2}\rangle = \frac{2 k_B T}{\gamma} t + \frac{2 k_B T}{\gamma^2/m}(1 - e^{-\gamma t/m})
+\end{equation}
+For long time scales, we obtain the following behaviour: \[\langle{x^2}\rangle = \frac{2 k_B T}{\gamma} t\] and, for the short time scales, the general expression reduces to the following:  \[\langle{x^2}\rangle = \frac{2 k_B T}{m}t\] Therefore, since \(m\) and \(k_B T\) play a role only in scaling and do not affect the nature of the stochastic equation, we can set them both to unity as this would not affect the behaviour that we want to observe which relates to the time scales.
+ 
 \textbf{(2)}\quad Parallelisation was implemented using OpenMP directives and we observe a change in the structure of the code in order to reap the maximum benefits of parallelisation. In the present case, two threads were used with one thread handling the computation and the other thread handling the writing to disk. This was done since writing is the most time consuming process in the code and with the vectorized code implementation, the computational time is no more a stumbling block in the performance. In order to implement the  parallelisation, we must ensure that the race condition must not arise. With this aim, the time variable, \textit{t}, was listed using the \textit{lastprivate} \& \textit{lastprivate} clauses and temporary variables \textit{x\_temp} \& \textit{y\_temp} were defined. Moreover, since writing and computing are now handled by separate threads, the writing task does not necessarily need to follow the computation. In fact, we see from the code that the OpenMP section responsible for writing data to disk precedes the OpenMP section looping over the particles to run the velocity verlet algorithm.
 
 A direct comparison of the two codes can be performed in terms of the speed-up. The obtained results have been presented in  table~\ref{tab:su}
@@ -87,9 +101,11 @@ A direct comparison of the two codes can be performed in terms of the speed-up. 
 \end{table}
 
 \textbf{(3)}\quad (a) One of the possible tests to verify the particle distribution is to divide the box into sectors and count the number of particles in each sector. Since the particles have been distributed uniformally, all the boxes should contain almost the same number of particles.\\
-(b) Another possible test to check the proper implementation of the boundary conditions is to count the total number of particles in the box at \(t_0\) and \(T_{max}\). Provided that the particles have reasonable velocities and accelarations, the number of particles lost during the simulation must be reasonably small.\\ (c) The root mean square displacement of the particles should show two distinct phase - a ballistic phase with root mean square dispacement proportional to \(t\) and a Brownian motion phase with root mean square displacement proportional to \(t^{1/2}\). Furthermore, when a box of sufficiently large dimensions is used, the root mean square displacement should reach a constant plateau after a the ballistic and Brownian phases.     
+(b) Another possible test to check the proper implementation of the boundary conditions is to count the total number of particles in the box at \(t_0\) and \(T_{max}\). Provided that the particles have reasonable velocities and accelarations, the number of particles lost during the simulation must be reasonably small.\\ (c) The root mean square displacement of the particles should show two distinct phase - a ballistic phase with root mean square dispacement proportional to \(t\) and a Brownian motion phase with root mean square displacement proportional to \(t^{1/2}\). Furthermore, when a box of sufficiently large dimensions is used, the root mean square displacement should reach a constant plateau after the ballistic and Brownian phases.     
 
-\textbf{(4)}\quad The velocity autocorrelation function can be defined as \[A(\tau) = \frac{\langle v(t) \cdot v(t-\tau)}{\langle v(t) \cdot v(t)}\] From the requirement of equipartition of energy at equilibrium, it can be shown that the autocorrelation function, \(A(\tau)\) decays as \(\exp{-\gamma t / m}\). To observe this behaviour, the following implementaion of the autocorrelation function was implemented: \[A(t) = \frac{\langle v(t) \cdot v(0)}{\langle v(t) \cdot v(t)}\] This implementation of the velocity correlation function was implemented using the following additional lines of code:
+\textbf{(4)}\quad The velocity autocorrelation function can be defined as
+\[A(\tau) = \frac{\langle v(t) \cdot v(t-\tau) \rangle}{\langle v(t) \cdot v(t) \rangle}\]
+  From the requirement of equipartition of energy at equilibrium, it can be shown that the autocorrelation function, \(A(\tau)\) decays as \(\exp{-\gamma t / m}\). To observe this behaviour, the following implementaion of the autocorrelation function was implemented: \[A(t) = \frac{\langle v(t) \cdot v(0) \rangle}{\langle v(t) \cdot v(t) \rangle}\] This implementation of the velocity correlation function was implemented using the following additional lines of code:
 
 \begin{lstlisting}
   ! Declare variables to save initial velocity for correlation
@@ -116,13 +132,17 @@ A direct comparison of the two codes can be performed in terms of the speed-up. 
 The additional line in the code writes the velocity correlation at each time step to the file \textit{velocity\_correlation} and the values were plotted against time. As shown in figure~\ref{fig:vcf}, the velocity correlation function follows the desired exponentially decaying trend but the exact values shows a slight departure from the exact expected curve. This fluctutaion is a result of the statistical nature of the function and the trend confirms the expected behaviour. 
 	\begin{figure}[h]
 		\centering
-		\includegraphics[width=\textwidth]{vcf.png}
+		\includegraphics[width=0.5\textwidth]{vcf.png}
 		\caption{Computed velocity correlation function and expected behaviour.}
 		\label{fig:vcf}
 	\end{figure} 
-
-
-        
+        As shown in figure~\ref{fig:vcr}, the same velocity correlation function has been plotted on a semilog scale for time range from \num{0} \si{\second} to  \num{2.5} \si{\second} and we can observe that the function follows the expected behaviour, i.e. \(Velocity Correlation = e^{-\gamma t/m}\), where \(\gamma\) and \(m\) are equal to zero in the present study.
+        \begin{figure}[h]
+		\centering
+		\includegraphics[width=0.5\textwidth]{vcr.eps}
+		\caption{Semilog behaviour of computed velocity correlation function.}
+		\label{fig:vcr}
+	\end{figure}
 
 \section{Conclusion}
 In the present exercise, the impact of parallelisation on the code was analysed using speed-up and efficiency and a number of test cases were developed. It was observed that the box size dictates the behaviour observed in the simulations and therefore the box must be sufficiently large and the time sufficiently long to observe the expected behaviour. A number of test cases were developed to analyse the performance and the velocity correlation function was computed and the expected behaviour was observed.                  
