@@ -1,5 +1,12 @@
 Decent report, nice clean script. One mistake in the compiler options and a possible race condition. 85/100. If you address some of the points below by November 5th, I will re-evaluate the assignment and add a maximum of 10 marks.
 
+*UPDATE* Bugs fixed and report updated. Final: 95/100.
+
+Additional comments:
+- Use \text or \mbox for in-formula words to change the font (e.g. SpeedUp in equation 1).
+- Do not use $\times$ or $\cdot$ or similar for ordinary multiplication.
+- "BLAS library offers a much more reliable method" what do you mean by reliable? They both compute the correct product, no? What you should say is that the wall time may be shorter with the double loop and multiple threads, but that method uses much more resources than the BLAS call on one thread. If you think about the FLOPS per core second (#FLOPS/(num_procs X par_wall_time) ) the BLAS call is superior.
+
 * Code:
 - Your tests were compromised by the optimization options, "-o1" and -"o3". They should be "-O1" and "-O3". This is case sensitive. Because of this, you did not see a difference between the two and when you though you were using ifort without optimization, it was in fact using the default (I believe it is -O2).
 - Many of your tests are obsolete, like running on multiple threads without compiling with the openmp flag, or when using DGEMV. You should explain why you did this and what conclusions you can draw. 
