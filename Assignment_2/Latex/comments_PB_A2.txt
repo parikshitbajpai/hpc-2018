@@ -1,3 +1,9 @@
+*UPDATE* Some improvements. Your tests are still not very strong, but the discussion of the Langevin equation is nice. 85/100.
+
+- Below Eq. 3, the <x^2> should grow as t^2 for t<< m/gamma. That makes me think there is a sign wrong in Eq. 3. If you change the + to a -, you can Taylor expand the exponential and find that the zeroth and first order term cancel, leaving you with <x^2> = constant * t^2 + O(t^3), which makes sense.
+- For the numbers in Table 1, you should at least specify the number of particles and the number of time steps since these determine the overall FLOP count.
+
+
 Fix what you can and re-submit by Tuesday 13th.
 
 * Code:
