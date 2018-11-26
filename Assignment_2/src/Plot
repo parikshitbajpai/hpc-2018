@@ -1,4 +1,20 @@
 # Set GNUPlot terminal to postscript to save in .eps format
 set terminal postscript eps size 3.5,2.62 enhanced color \
-    font 'Helvetica,20' linewidth 2
+    font 'Helvetica,12' linewidth 2
+
 # Plot Velocity Correlation Function
+# Set output
+set output 'vcr.eps'
+
+# Set semilog scale
+set logscale y
+
+# Set domain
+set xrange [0:2.5]
+
+# Set axis labels
+set xlabel 'Time (t)'
+set ylabel 'Velocity Correlation'
+
+# Plot
+plot 'velocity_correlation' title "Velocity Correlation", exp(-t) t "exp(-t)" 

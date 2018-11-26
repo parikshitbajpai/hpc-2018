@@ -45,7 +45,7 @@ ifort -O3 -o run.x ../src/LangDyn_2D_NonInter_BC_VC.f90 && echo "Compilation OK"
 ./run_p.x
 
 echo ""
-gnuplot
+gnuplot Plot
 
 echo ""
 echo "----------------------------------------------------------------------------"

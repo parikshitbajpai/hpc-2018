@@ -1,0 +1,118 @@
+\begin{algorithm}
+  \DontPrintSemicolon
+  \KwData{Number of particles ($N$), Number of rows and columns ($d$)}
+  \KwResult{Compute RMS displacement and trajectories}
+  Allocate and initialize all variables\;
+  Create neighbour list\;
+  Initialize particles and perform ordering\;
+  \While{$t < t_{max}$}{
+    Update half-step velocities $\vec v_h (t + \Delta t/2) \leftarrow \vec v(t) + 0.5 \vec a \Delta t$\;
+    Update particle positions $\vec x (t+dt) \leftarrow \vec x (t) + \vec v_h (t+\Delta t /2) \Delta t$\;
+    Impose reflecting boundary conditions\;
+    Reorder particles according to sector\;
+    Compute random forces acting on particle and update particle acceleration $\vec a$\;
+    \For{Sector $S1 = 0,1,\cdots,d^2-1$}{
+      \For{Each particle $i$ in sector $S1$}{
+        \For{All neighbours $S2$ of sector $S1$}{
+          \For{Each particle $j$ in sector $S2$}{
+            Compute distance between particles $i$ and $j$\;
+            \If{Distance between $i$ and $j$ $<$ Critical distance $r_C$}{
+              Compute interaction force $\vec F_i$\;
+              Update particle acceleration $\vec a_i \leftarrow \vec a_i + {\vec F_i}/m$\;
+            }
+          }
+        }
+      }
+    }
+    Update velocities $\vec v (t + dt) \leftarrow \vec v_h(t + \Delta t/2) + 0.5 \vec a \Delta t$\;
+    Update time $t = t + \Delta t$\;
+    Write particle position $\vec x$ to 'Trajectories'\;
+    Write RMS displacement $\sqrt{\frac{\sum_{i=1}^{N}(\vec x - \vec x_0)^2}{N}}$ to 'Means'\;
+  }
+  \caption{Main}
+\end{algorithm}
+
+\begin{algorithm}
+  \DontPrintSemicolon
+  \KwData{Particle position (\(\vec x = \left< x, y \right>\)), Particle velocity (\(\vec u = \left< u_x, u_y \right>\)), Particle acceleration (\(\vec a = \left< a_x, a_y \right>\))}
+  \KwResult{Set physical parameters and random initial position and velocity of particles}
+      Initialize physical parameters \\
+      \For{Particle $i = 1,2,\cdots,N$}{
+        $x_i \leftarrow \text{Uniform random number} \in (-L/2 , L/2)$ \\
+        $y_i \leftarrow \text{Uniform random number} \in (-L/2 , L/2)$ \\
+        $u_{x_i} \leftarrow \text{Normal random number} \in \mathcal{N}(0, \, \frac{K_B T}{m})$ \\
+        $u_{y_i} \leftarrow \text{Normal random number} \in \mathcal{N}(0, \, \frac{K_B T}{m})$ \\
+        $a_{x_i} \leftarrow 0$ \\
+        $a_{y_i} \leftarrow 0$
+      }
+   \caption{Initialization}
+\end{algorithm}
+
+\begin{algorithm}
+  \DontPrintSemicolon
+  \KwData{Particle position (\(\vec x = \left< x, y \right>\)), Particle velocity (\(\vec u = \left< u_x, u_y \right>\)), Box length ($L$)}
+  \KwResult{Updates particle position and velocity if outside the box}
+      \For{$i = 1,2,\cdots,N$}{
+        \If{$x_i < -L/2$}{
+          $x_i \leftarrow -L - x_i$;
+          \\$u_{x_i} \leftarrow -u_{x_i}$;
+        }
+        \If{$x_i > L/2$}{
+          $x_i \leftarrow L - x_i$;
+          \\$u_{x_i} \leftarrow -u_{x_i}$;
+        }
+        \If{$y_i < -L/2$}{
+          $y_i \leftarrow -L - y_i$;
+          \\$u_{y_i} \leftarrow -u_{y_i}$;
+        }
+        \If{$y_i > L/2$}{
+          $y_i \leftarrow L - y_i$;
+          \\$u_{y_i} \leftarrow -u_{y_i}$;
+        }
+      }
+    \caption{Reflecting Boundary Conditions}
+  \end{algorithm}
+
+\begin{algorithm}
+  \DontPrintSemicolon
+  \KwData{Particle position (\(\vec x = \left< x, y \right>\))}
+  \KwResult{Sector indices and number of particles in each sector}
+  \For{Particle $i = 1,2,\cdots,N$}{
+    \If{Particle within domain ($-L/2 \leq x \leq L/2$ \textbf {and} $-L/2 \leq y \leq L/2$)}{
+      Assign sector to the particle; \\
+      Number of particles in sector $\leftarrow$ Number of particles in sector + 1;
+    }
+     \Else{
+      Put the particle in garbage bin; \\
+      Number of particles in garbage $\leftarrow$ Number of particles in garbage + 1;
+     }
+  }
+  \caption{Assign particle sectors}
+\end{algorithm}
+
+\begin{algorithm}
+  \DontPrintSemicolon
+  \KwData{Particle position (\(\vec x = \left< x, y \right>\))), Particle velocity (\(\vec u = \left< u_x, u_y \right>\))}
+  \KwResult{Particles ordered according to the sector they are in.}
+  \For{Particle $i = 1,2,\cdots,N$}{
+    Sort the particles according to their sector.
+  }
+  \caption{Ordered list of particles}
+\end{algorithm}
+
+\begin{algorithm}
+  \DontPrintSemicolon
+  \KwData{Neighbour list}
+  \KwResult{List of neighbours of each sector}
+  \For{Sector $k = 1,2,\cdots,d^2-1$}{
+    \For{All surrounding sectors}{
+      \If{Valid sector}{
+        Add to neighbour list
+      }
+    }
+  }
+  \caption{Neighbour list}
+\end{algorithm}
+
+    
+    

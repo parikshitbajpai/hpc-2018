@@ -9,6 +9,7 @@
 \usepackage{color}
 \usepackage{multirow}
 \usepackage{siunitx}
+\usepackage[ruled,vlined]{algorithm2e}
 
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
@@ -32,7 +33,7 @@
    }
 
 
-\title{MCSC 6030G : High Performance Computing \\ Assignment 2: Langevin Dynamics}
+\title{MCSC 6030G : High Performance Computing \\ Assignment 3: Langevin Dynamics of Interacting Particles}
 \author{Parikshit Bajpai \\ 100693928}
 \date{}							% Activate to display a given date or no date
 
@@ -46,18 +47,28 @@ In 1908, Paul Langevin successfully applied Newtonian dynamics to a Brownian par
   \end{equation}
   where the velocity of the particle, \(v \in \mathbb{R}^2\) in a two-dimensional space, \(\gamma\)  denotes the viscosity contribution of the force, and the random force variable \(\eta\) is drawn from a standard normal distribution. The random force  coefficient equals, from the fluctuation-dissipation theorem, \(c = \sqrt{2 \gamma k_B T}\), where \(k_B\) is the Boltzmann constant and T is the temperature.
 
-set  In Langevin dynamics, at short time scales, i.e. \(t \ll \tau_p \), where \(\tau_p =  m / \gamma \) is the momentum relaxation time of particles, the dynamics of a Brownian particle is dominated by its inertia, and, the motion is this region is termed as \textit{ballistic Brownian motion}. At larger time scales, i.e.  \(t \gg  \tau_p\),  \textit{diffusive Brownian motion}
+In Langevin dynamics, at short time scales, i.e. \(t \ll \tau_p \), where \(\tau_p =  m / \gamma \) is the momentum relaxation time of particles, the dynamics of a Brownian particle is dominated by its inertia, and, the motion is this region is termed as \textit{ballistic Brownian motion}. At larger time scales, i.e.  \(t \gg  \tau_p\), \textit{diffusive Brownian motion} is observed.
   
 \section{Methodology}
-\subsection{Objective}
-The objective of this study is to analyze the non-interacting particle Brownian motion and analyze the simlifying assumptions adopted in the implementation, assess the requirements for parallelization and study their implementation, and to develop test cases to verify the implementation. 
+   \subsection{Objective}
+In the present study, Langevin dynamics has been further analysed by including interaction forces between the particles and implementing domain decomposition and parallelisation. The objective of this study is to analyze the Brownian motion of interacting particles with domain decomposition and multi-threading, and, to study the impact of model parameters on the efficiency of parallelization.
 
 \subsection{Machine Configuration}
-	\textbf{Manufacturer \& Model}: Lenovo ThinkPad Yoga 370\\
+The initial computations for the present study were performed on the local machine followed by detailed study on HPC systems accessible through \textit{Compute Canada}.
+      \subsubsection{Local Machine}
+        \textbf{Manufacturer \& Model}: Lenovo ThinkPad Yoga 370\\
 	\textbf{Processor}: Intel Core i5 -7200U (2 physical cores, 2 hyperthreads)\\
 	\textbf{Clock Rate}:  2.50 GHz\\
 	\textbf{RAM}:  16 GB\\
 	\textbf{Operating System}: Ubuntu 18.04\\
+
+       \subsubsection{GRAHAM Cluster}
+        \textbf{Manufacturer}: Huawei\\
+	\textbf{Processor}: Intel E5-2683 v4 (Broadwell) (Total 36160 cores, maximum 32 cores used in the study)\\
+	\textbf{Clock Rate}:  2.10 GHz\\
+	\textbf{RAM}:  Node specific\\
+	\textbf{Operating System}: CentOS 7\\
+
 	
 \subsection{Implementation}
 The Langevin equation was discretised using the Velocity Verlet algorithm, which is similar to the Leapfrog method, except that the velocity and position are calculated at the same value of the time variable. The mathematical formulation of the algorithm is shown below.
@@ -68,16 +79,18 @@ The Langevin equation was discretised using the Velocity Verlet algorithm, which
   \end{split}
 \end{equation}
 
-The algorithm was implemented for both serial and parallel computing approaches and the major differences between the two codes have been discussed in the following section.    
+While an implementation of the above algorithm essentially involves computing forces (which manifest themselves in the code in form of accelerations) and updating velocities and positions at each time step, additional book-keeping tasks must be performed in order to include domain decomposition. The principle behind domain decomposition is reducing the computation time by avoiding operations which whose results are a-priori known. It has been well established that the interaction forces between particles at a distance larger than a critical distance, $r_c$, are effectively zero. By selecting a suitable sector size, $\text{Domain Width} \geq r_c$, the number of interactions to be computed can be minimized to interactions between particles in the same and surrounding sectors, therby resulting in a decrease in wallclock times. Furthermore, each sector can then, at least in theory, be alloted to a separated thread in order to implement multi-threading. The overheads in domain decomposition arise from the requirement to maintain neighbour lists and to account for the particles and updating their sectors at each time step.
 
-Marcos Machado, Celina Desbiens and myself worked together on building the codes, executing and interpreting the results. 
+In the present work, periodic boundary conditions have been implemented along with domain decomposition. The following pseudo-codes exhibit the algorithms required to develop a Langevin dynamics code for interacting particles with periodic boundary conditions and domain decomposition.
+
+\include{Algorithms}
 	
 \section{Results and Discussion}
 \textbf{(1)}\quad The mass, space and time scales can be defined for the  Langevin equation in terms of the system parameters as follows: \[Mass scale \, [\si{\kilo\gram}] = m\]  \[Time scale \, [\si{\second}] = \frac{m}{\gamma}\]  \[Space scale \, [\si{\metre}] = \frac{\sqrt{m}\cdot c}{\sqrt{\gamma^3}}\] When the domain is bounded within a closed box of dimension \(L \times L\), the length scale gets scaled and we obtain an additional non-dimensionless term, \(\frac{\sqrt{m}\cdot c}{L\cdot\sqrt{\gamma^3}}\). Physically, this results in the saturation of the root mean square displacement  and a plateau is obtained beyond the diffusive region.
 
 For Langevin dynamics, the mean square displacement can be given by the following expression:
 \begin{equation}
-  \langle{x^2}\rangle = \frac{2 k_B T}{\gamma} t + \frac{2 k_B T}{\gamma^2/m}(1 - e^{-\gamma t/m})
+  \langle{x^2}\rangle = \frac{2 k_B T^2}{\gamma} t + \frac{2 k_B T}{\gamma^2/m}(1 - e^{-\gamma t/m})
 \end{equation}
 For long time scales, we obtain the following behaviour: \[\langle{x^2}\rangle = \frac{2 k_B T}{\gamma} t\] and, for the short time scales, the general expression reduces to the following:  \[\langle{x^2}\rangle = \frac{2 k_B T}{m}t\] Therefore, since \(m\) and \(k_B T\) play a role only in scaling and do not affect the nature of the stochastic equation, we can set them both to unity as this would not affect the behaviour that we want to observe which relates to the time scales.
  
