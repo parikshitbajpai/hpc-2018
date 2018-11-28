@@ -2,7 +2,7 @@
 
 6030G: High Performance Computing
 
-Assignment 2: Langevin Dynamics of Non-Interacting Particles 
+Assignment 3: Langevin Dynamics of Interacting Particles 
 
 Submitted to Prof. Lennaert Van Veen
 
