@@ -85,7 +85,126 @@ The principle behind domain decomposition is reducing the computation time by av
 
 In the present work, reflecting boundary conditions have been implemented along with the decomposition of domain into $D \times D$ subdomains/sectors. The following pseudo-codes exhibit the algorithms required to develop a Langevin dynamics code for interacting particles with reflecting boundary conditions and domain decomposition.
 
-\include{Algorithms}
+% \include{Algorithms}
+\begin{algorithm}
+  \DontPrintSemicolon
+  \KwData{Number of particles ($N$), Number of rows and columns ($d$)}
+  \KwResult{Compute RMS displacement and trajectories}
+  Allocate and initialize all variables\;
+  Create neighbour list\;
+  Initialize particles and perform ordering\;
+  \While{$t < t_{max}$}{
+    Update half-step velocities $\vec v_h (t + \Delta t/2) \leftarrow \vec v(t) + 0.5 \vec a \Delta t$\;
+    Update particle positions $\vec x (t+dt) \leftarrow \vec x (t) + \vec v_h (t+\Delta t /2) \Delta t$\;
+    Impose reflecting boundary conditions\;
+    Reorder particles according to sector\;
+    Compute random forces acting on particle and update particle acceleration $\vec a$\;
+    \For{Sector $S1 = 0,1,\cdots,d^2-1$}{
+      \For{Each particle $i$ in sector $S1$}{
+        \For{All neighbours $S2$ of sector $S1$}{
+          \For{Each particle $j$ in sector $S2$}{
+            Compute distance between particles $i$ and $j$\;
+            \If{Distance between $i$ and $j$ $<$ Critical distance $r_C$}{
+              Compute interaction force $\vec F_i$\;
+              Update particle acceleration $\vec a_i \leftarrow \vec a_i + {\vec F_i}/m$\;
+            }
+          }
+        }
+      }
+    }
+    Update velocities $\vec v (t + dt) \leftarrow \vec v_h(t + \Delta t/2) + 0.5 \vec a \Delta t$\;
+    Update time $t = t + \Delta t$\;
+    Write particle position $\vec x$ to 'Trajectories'\;
+    Write RMS displacement $\sqrt{\frac{\sum_{i=1}^{N}(\vec x - \vec x_0)^2}{N}}$ to 'Means'\;
+  }
+  \caption{Main}
+\end{algorithm}
+
+\begin{algorithm}
+  \DontPrintSemicolon
+  \KwData{Particle position (\(\vec x = \left< x, y \right>\)), Particle velocity (\(\vec u = \left< u_x, u_y \right>\)), Particle acceleration (\(\vec a = \left< a_x, a_y \right>\))}
+  \KwResult{Set physical parameters and random initial position and velocity of particles}
+      Initialize physical parameters\;
+      \For{Particle $i = 1,2,\cdots,N$}{
+        $x_i \leftarrow \text{Uniform random number} \in (-L/2 , L/2)$\;
+        $y_i \leftarrow \text{Uniform random number} \in (-L/2 , L/2)$\;
+        $u_{x_i} \leftarrow \text{Normal random number} \in \mathcal{N}(0, \, \frac{K_B T}{m})$\;
+        $u_{y_i} \leftarrow \text{Normal random number} \in \mathcal{N}(0, \, \frac{K_B T}{m})$\;
+        $a_{x_i} \leftarrow 0$\;
+        $a_{y_i} \leftarrow 0$\;
+      }
+   \caption{Initialization}
+\end{algorithm}
+
+\begin{algorithm}
+  \DontPrintSemicolon
+  \KwData{Particle position (\(\vec x = \left< x, y \right>\)), Particle velocity (\(\vec u = \left< u_x, u_y \right>\)), Box length ($L$)}
+  \KwResult{Updates particle position and velocity if outside the box}
+      \For{$i = 1,2,\cdots,N$}{
+        \If{$x_i < -L/2$}{
+          $x_i \leftarrow -L - x_i$\;
+          $u_{x_i} \leftarrow -u_{x_i}$\;
+        }
+        \If{$x_i > L/2$}{
+          $x_i \leftarrow L - x_i$\;
+          $u_{x_i} \leftarrow -u_{x_i}$\;
+        }
+        \If{$y_i < -L/2$}{
+          $y_i \leftarrow -L - y_i$\;
+          $u_{y_i} \leftarrow -u_{y_i}$\;
+        }
+        \If{$y_i > L/2$}{
+          $y_i \leftarrow L - y_i$\;
+          $u_{y_i} \leftarrow -u_{y_i}$\;
+        }
+      }
+    \caption{Reflecting Boundary Conditions}
+  \end{algorithm}
+
+\begin{algorithm}
+  \DontPrintSemicolon
+  \KwData{Particle position (\(\vec x = \left< x, y \right>\))}
+  \KwResult{Sector indices $(R,C)$ and number of particles in each sector}
+  \For{Particle $i = 1,2,\cdots,N$}{
+    \If{Particle within domain ($-L/2 \leq x \leq L/2$ \textbf {and} $-L/2 \leq y \leq L/2$)}{
+      Assign particle to sector $(R,C)$ where $R=\frac{(x + L/2)D}{L}$ and $C=\frac{(y + L/2)D}{L}$\;
+      Number of particles in sector $\leftarrow$ Number of particles in sector + 1;
+    }
+     \Else{
+      Put the particle in garbage bin\;
+      Number of particles in garbage $\leftarrow$ Number of particles in garbage + 1;
+     }
+  }
+  \caption{Assign particle sectors}
+\end{algorithm}
+
+\begin{algorithm}
+  \DontPrintSemicolon
+  \KwData{Particle position (\(\vec x = \left< x, y \right>\))), Particle velocity (\(\vec u = \left< u_x, u_y \right>\))}
+  \KwResult{Particles ordered according to the sector they are in.}
+  \For{Particle $i = 1,2,\cdots,N$}{
+    Create an ordered list with pointers for each sectors\;
+    Put the particle in the proper place in ordered list based on its sector\;
+  }
+  \caption{Ordered list of particles}
+\end{algorithm}
+
+\begin{algorithm}
+  \DontPrintSemicolon
+  \KwData{Neighbour list}
+  \KwResult{List of neighbours of each sector}
+  \For{Sector $k = 1,2,\cdots,d^2-1$}{
+    Get chessboard indices $(i,j)$\; 
+    \For{Rows $R = i-1,i,i+1$}{
+      \For{Columns $C = j-1,j,j+1$}{ 
+        \If{$0 \leq R \leq D-1$ \textbf{and} $0 \leq C \leq D-1$}{
+          Add sector with indices $(R,C)$ to neighbour list
+        }
+      }
+    }
+  }
+  \caption{Neighbour list}
+\end{algorithm}
 
 \subsection{Computational Experiments}
 The simulation of Brownian motion depends on a number of factors, both physical and computational. These parameters not only affect the observed behaviour but also the computational times as discussed in the following paragraphs.
@@ -97,7 +216,7 @@ The particle density in the box affects the Brownian motion itself and the  obse
 The wallclock times for the Langevin dynamics problem depend on the maximum time of simulation, $t_{max}$, and the time-steps, $\Delta t$, used in the simulations. While the end time for the simulation can be chosen rather arbitrarily, in order to observe all the expected displacement scales, we must make sure that $t_{max}$ is sufficiently large while also making sure that we don't keep it much larger than the saturation time as there won't be any gains in terms of additional physical information that might be obtained but would lead so an increase in wallclock times. With a fixed  $t_{max}$, smaller the time-steps, larger the number of operations and hence longer the wall-clock times will be. However, the time stepping also plays an important role in preventing the loss of particles from the domain. If the time-steps are too large, fast moving particles, i.e ones with velocities much larger than $L/\Delta t$ have a probability of travelling too far outside the box to be moved back in by the reflecting boundary conditions.
 
 Two important physical parameters releveant to the interaction forces are the radius of the particles, $\sigma$, and the distance between the particles, $R$, and the interaction force between particles \textit{i} and \textit{j} is given as \[F_{i,j} =  \frac{4 \epsilon}{R} \left ( -12 \left ( \frac{\sigma}{R} \right )^{12} + 6 \left ( \frac{\sigma}{R} \right )^{6} \right)\]
-where $\epsilon$ denotes the depth of the potential well. The critical radius $R_C$ denotes the minimum distance between the particles at which the interaction forces can be approximated to zero and is normally taken as $2.5 \sigma$. In order to minimize the particles being lost due to extremely large interaction forces and resulting velocities, we must ensure that $\sigma$ is not large and an upper limit of possible values of particle radius can be obtained. A similar argument imposes a lower limit on the possible values of $R$. The argument can, in other words, be translated in terms of particle density in the box. For a box of fixed size, the number of particles in the box can only be increased such that the particle density is not too high to lead to very high interaction forces and thus loss of particles.
+where $\epsilon$ denotes the depth of the potential well. The critical radius $R_C$ denotes the minimum distance between the particles at which the interaction forces can be approximated to zero and is  taken as $2^{1/6} \sigma$ by adopting the Weeks-Chandler-Andersen perturbation theory. In order to minimize the particles being lost due to extremely large interaction forces and resulting velocities, we must ensure that $\sigma$ is not large and an upper limit of possible values of particle radius can be obtained. A similar argument imposes a lower limit on the possible values of $R$. The argument can, in other words, be translated in terms of particle density in the box. For a box of fixed size, the number of particles in the box can only be increased such that the particle density is not too high to lead to very high interaction forces and thus loss of particles.
 
 Domain decomposition and multi-threading provide two additional parameters to optimise in order to reduce wallclock times, namely the number of rows/columns, $D$, and the number of threads, $N_{Threads}$. As already seen, domain decomposition into $D \times D$ sectors helps reduce the order of floating point operations at each time step by a factor of $D^4$, i.e., with domain decomposition the wallclock times are expected to be proportional to $\left (\frac{N}{D^2} \right )^2$. Although book-keeping overheads consume a bit of the reduced time, their computations are of lower order compared to the computations using the velocity verlet and we can still observe an appreciable reduction in the wallclock times. However, domain decomposition follows the law of diminishing returns and we observe that beyond a number of domains, the addition of more rows/columns does not result in any significant time gain and might even make the times worse. From the point of view of implementation, to ensure that the interactions are limited to particles within a sector and in the neighbouring sectors, we must ensure that $\text{\textit{Domain Width}} \geq R_c$, and an upper limit on the maximum number of sectors is obtained.
 
@@ -158,7 +277,16 @@ The number of particles at the first time step and by the end of the computation
   \end{tabular}
 \end{table}
 
+\section{Minimizing Particle Loss}
+The number of particles lost in the initial time steps is highly dependent on the initialization of the particles. While a uniform distribution of the particles, as adopted in the present work,  does result in a reduced number of particles lost at the first time-step, there still remains a possibility that a few particles will be within a very small distance of other particles resulting in very high forces and consequently high accelerations and particle loss. To minimize the particles lost in the initial time-steps, the following methods can be investigated:
+\begin{enumerate}
+\item {Adaptive Time Stepping:} \quad As already seen in figure~\ref{fig:loss}, the number of particles lost in the initial time steps reduces when a smaller time step is adopted. This is coherent with the observed physical behaviour where the time is continuous and the particle loss in computations can be attributed to the time discretisation and the choice of the time step size. However, from figure~\ref{fig:loss}, we also observe that the smaller time steps also leads to more particles being lost by the end of computation. In order to make the best use of both these observations and to minimize the number of particles lost, we can adopt an adaptive time stepping where very small time staps can be adopted at the start of computations and increased as the iterations proceed. This approach can be implemented by using $\text{Time Step} \Delta t = (1 - e^{-Kt} \Delta t_{max} + 0.00001)$.
+\item{Truncated WCA:} \quad Since the high initial forces arising out of initial distance between particles is responsible for the loss of particles, we can use a truncated WCA perturbation thory. This idea tries to force the interaction forces between particles to a predefined damped maximum and after a few  predetermined conditions are met or a fixed nymber of iterations are over, the forces can be allowed to follow the WCA potetial.
+  \item{Conditional Initialization}: Since the particles are lost due to them being excessively close to each other, we can define a condition that states that if the distance of a particle from any other particle is within a very small distance, the particle must be reinitialised and placed at a different location.
+\end{enumerate}
 
+
+                
 \section{Conclusion}
      In conclusion, we can say that a number of physical and computational parameters affect the wall-clock times of the Langevin dynamics simulation. While the number of particles significantly impacts the wall-clock times, significant speed-ups can be obtained by domain discretisation and multi-threading. For a fixed number of particles, we observed that a minimum of 400 sectors with 2 threads gives an efficiency of at least 80\% and while we observe a continuous speed-up as the number of threads is increased, there is a loss of efficiency. With 32 threads, we found out that a minimum of 4000 particles were required to have an efficiency of 30\%.         
 

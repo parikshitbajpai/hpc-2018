@@ -28,4 +28,4 @@ This repository consists of the following source codes contained in the director
 
 ### Latex Files ###
 * The tex file, bib file and required images are in the folder Latex.
-* The report is in the Assignment_2 folder and named Assignment_2_Parikshit.
+* The report is in the Assignment_3 folder and named Assignment_3_Parikshit.
