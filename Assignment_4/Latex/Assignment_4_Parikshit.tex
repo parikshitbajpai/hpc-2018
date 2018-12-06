@@ -85,7 +85,6 @@ Start implementation Master vs Slave method\\~\\
 	Define $\lambda _{max} = \text{max}(\lambda _{i})$ of vector $W$\\
 	Call mpi and \textit{SEND} $\lambda _{max}$ to Master\\
 	Call mpi and \textit{RECEIVE} $flag$ to verify if is there any job left\\
-
 }
 \textbf{end if} \\
 
@@ -154,7 +153,7 @@ The obtained random distributions of maximum Eigenvalues for different matrix si
 		\caption{Analysis of the obtained maximum Eigenvalue distributions.}
 		\label{fig:3}
 	\end{figure}
-        
+The results show that the Eigenvalues generally show a log-normal distribution with an increase in the average values as the matrix size was increased.        
 
 The Eigenvalues were computed for different matrix sizes $n$ and different numbers of desired Eigenvalues $N$ using both BLAS and shifted power iterations and the obtained wallclock times were compared. The results are presented below in  figure~\ref{fig:walltime}.
         	\begin{figure}[h]
@@ -164,33 +163,15 @@ The Eigenvalues were computed for different matrix sizes $n$ and different numbe
 		\label{fig:walltime}
 	        \end{figure}
 
-                
-                \begin{table}[h]
-  \caption{Speed-up and efficiency of parallelisation for $N = \num{1.3d6} \text{\&} D = 8$.}
-  \label{tab:measures}
-  \centering
-  \begin{tabular}{ccccccc}
-    \toprule
-    \multirow{2}{*}{Number of Threads} &\phantom{abc} & \multirow{2}{*}{Wallclock Time [s]} &\phantom{abc} & \multicolumn{3}{c}{Parameter} \\
-    \cmidrule{5-7}
-    &\phantom{abc} & & \phantom{abc} & Speed-up & \phantom{abc} & {Efficiency}\\
-    \midrule
-    01 && 1717.20 && {} && {} \\
-    02 && 931.04 && 1.84 && 0.92 \\
-    04 && 561.92 && 3.06 && 0.76 \\
-    08 && 345.92 && 4.96 && 0.62 \\
-    16 && 231.27 && 7.42 && 0.46 \\
-    32 && 180.85 && 9.50 && 0.30 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+ In the available literature, Almeida et al. \cite{Almeida:2013:MEC:2509348.2509354} have shown that wallclock times are inversely proportional to the number of processors and Elenin et al. \cite{Elenin2013EvaluationOM}, have shown that wallclock times as small as those of the order of 0.65s can be obtained. The data shows, as expected, a decrease in wall-clock times as the number of processors is increased from one to three. However, since a further increase means that no physical cores are available and hyperthreads are used, we do not observe any further decrease in wallclock times for an increase in total number of processors beyond 4. Furthermore, the wallclock times of the  power iterations were observed to be smaller than the wallclock times using LAPACK.
 
 
-                
 \section{Conclusion}
-     In conclusion, we can say that a number of physical and computational parameters affect the wall-clock times of the Langevin dynamics simulation. While the number of particles significantly impacts the wall-clock times, significant speed-ups can be obtained by domain discretisation and multi-threading. For a fixed number of particles, we observed that a minimum of 400 sectors with 2 threads gives an efficiency of at least 80\% and while we observe a continuous speed-up as the number of threads is increased, there is a loss of efficiency. With 32 threads, we found out that a minimum of 4000 particles were required to have an efficiency of 30\%.         
+In conclusion, the computational experiments verify the expected outcomes of the study. MPI implementation of the master-slave model resulted in a reduced wallclock times as the number of slaves was increased. The power iteration was quicker than the LAPACK subroutine and the Eigenvalues showed a log-normal distribution with an increase in the average value as the size of the matrix was increased.      
+
+\newpage
 
 \bibliographystyle{ieeetr}
-\bibliography{Assignment_2_Parikshit}
+\bibliography{Assignment_4_Parikshit}
 
 \end{document}  
