@@ -20,7 +20,6 @@
     ! File 'Frequency_distribution' contains a list of maximum eigenvalues
     open(14,file='Frequency_distribution')
 
-
     call start_MPI(ok)
     
     ! Flags to follow account for the jobs done and left.
@@ -42,8 +41,11 @@
           do while (flag.eq.1)
 
              call open_random_stream
-             ! Make random matrix (NOTE: here all entries will be (0,1) normally distributed)
+             
+             ! Make random matrix (NOTE: Here all the entries will be N(0,1))
              ierr=vdrnggaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF,stream,n*n,A,0d0,1d0) ! Draw (n+1) numbers from standard normal distribution
+             
+             ! Generate a symmetric matrix using the PRN generator
              do j=1,n
                 do i=1,j			
                    if (i.eq.j) then
@@ -52,20 +54,21 @@
                 end do
              end do
 
+             ! Compute a Double Precision array required by LAPACK
              do j=1,n
                 do i=1,j
                    AP(i+(j-1)*j/2)=A(i,j)
                 end do
              end do
 				
-             ! A vector of eigenvalues 'W' is calculated with LAPACK
-             call dspev('N','U',n,AP,W,DUMMY,1,WORK,INFO) 	
-             ! EV = Max eigenvalue
-             EV = maxval(W)
-             !eigenvalue is send to master, seed is updated and slaves received/or not flag to continue working as soon as they finish its calculation
-             call mpi_send(EV,1,MPI_DOUBLE_PRECISION,proc_num.eq.0,DEFAULT_TAG,MPI_COMM_WORLD,ierr)
+             call dspev('N','U',n,AP,W,DUMMY,1,WORK,INFO) ! Compute Eigenvalues using LAPACK
+             
+             EV = maxval(W) ! Maximum Eigenvalue
+             
+             call mpi_send(EV,1,MPI_DOUBLE_PRECISION,proc_num.eq.0,DEFAULT_TAG,MPI_COMM_WORLD,ierr) ! Send Eigenvalue to Master
+             
              seed_slaves=seed_slaves+1
-             call mpi_recv(flag,1,MPI_DOUBLE_PRECISION,0,DEFAULT_TAG,MPI_COMM_WORLD,MPI_STATUS_IGNORE,ierr)
+             call mpi_recv(flag,1,MPI_DOUBLE_PRECISION,0,DEFAULT_TAG,MPI_COMM_WORLD,MPI_STATUS_IGNORE,ierr)  ! Receive instruction from Master
           end do
           deallocate (A, AP, W,DUMMY,WORK)
        end if
@@ -73,12 +76,14 @@
        ! Master
        if(proc_num.eq.0) then
           allocate(G(Ni))
-          ith = 1
+          ith = 1 ! Pointer
 
           ! Save received eigenvalues, and send flag if desired number of eigenvalues obtained
           do while (ith.le.Ni) 
              call mpi_recv(G(ith),1,MPI_DOUBLE_PRECISION,MPI_ANY_SOURCE,DEFAULT_TAG,MPI_COMM_WORLD,STATUS,ierr) ! Receive eigenvalues from slaves
+             
              job_count = job_count+1 ! Update number of receives
+             
              if (job_count.le.Ni-num_procs+1) then
                 flag=1
                 call mpi_send(flag,1,MPI_DOUBLE_PRECISION,STATUS(3),DEFAULT_TAG,MPI_COMM_WORLD,ierr) ! Send continue flag to slave
