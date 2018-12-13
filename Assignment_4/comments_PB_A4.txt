@@ -1,0 +1,16 @@
+Good programming and testing. 85/100.
+
+* Report:
+- Be precise with your math. For instance, in Eq. (1) the diagonal elements are defined twice and differently.
+- In Fig. 1 there should be numbers on the axes. Also, the width of the boxes seems to be rather small for the number of data.
+- "Eigenvalues generally show a log-normal distribution..." More accurately: a Tracy-Widom distribution that has a Gaussian distribution as one limit (small matrices) and a log-normal distribution as the other limit (very large matrices).
+- "In the available literature..." Be careful to mention what you are comparing. Eigenvalue computation for (random) matrices? A Lapack benchmark? Matrix-vector products? Also, it is better not to cite absolute numbers (e.g. 0.65(s)) as these depend very much on the hardware. We usually normalize reported wall times by a "base case".
+- A figure with the table of wall times would be good.
+
+* Code:
+- Your generation of random matrices is a but wasteful: you draw n*n random number but then overwrite half of them..
+- "shift=10d0" Avoid the use of such "magic numbers" as much as possible. If your matrix gets large, 10 will not be enough! It would be better to first do power iterations without shift and, if the result is negative, repeat with the appropriate shift. You could even have master communicate the latest estimate for the shift (i.e. the smallest computed eigenvalue) to all slaves.
+- It would be prudent to add error handling for the power method. If the convergence is very slow, the iterations should stop after a maximal number and the result should be ignored. This is a pretty standard part of scientific programming - you see it in every LAPACK routine, for instance; they all return a flag that indicates success or failure.
+- You used "status(3)" to extract the source of the MPI message. However, which element of STATUS holds this information differs from one implementation to another. On my machine it failed. Simply changing the "3" by "MPI_SOURCE" fixes this.
+- Your master-slave implementation is asynchronous; master processes eigenvalues as they come in. This is very efficient as compared to making slaves wait for each other to finish. Well done.
+- Did you allow multi-threading when running you tests? Lapack will use it automatically for large matrices unless you tell it not to. This can severely affect your wall times - for the better or the worse (if hyperthreading is used).

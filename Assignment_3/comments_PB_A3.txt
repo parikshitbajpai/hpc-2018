@@ -1,0 +1,15 @@
+Good testing. Try to keep your writing clear and concise. 85/100.
+
+* Report:
+- Spell-check & proof read!
+- "It has been well established that the interaction forces between particles..." This is really a modelling choice, though.
+- The double subscripts (like $u_{x_{i}}$) are confusing. Just use $u_i$.
+- In algorithm 4, you should ensure that R and C are integers.
+- "Create an ordered list with pointers for each sectors" We do not use pointers in the code, do we? This is not clear.
+- More explanation around the pseudo-code would haven veen helpful. What data structures are the properties of the particles stored in? What shape, order and index do the domains have? Et cetera. Although the pseudo-codes are largely correct, it would be impossible for a relative outsider to implement them with this little guidance!
+- "As seen above" Where?
+- In scientific writing, avoid contractions and colloquialisms like "won't" and "we'll".
+- Your discussion of sigma and the particle density makes sense but is very roundabout and wordy. All you really have to say is that the average distance between particles is about L/sqrt(n) and this should be significantly larger than sigma to avoid many particles overlapping.
+- Nice results and discussion - just refrain from using smooth interpolants for discrete data unless you have good reasins to believe that an underlying smooth function exists.
+
+
