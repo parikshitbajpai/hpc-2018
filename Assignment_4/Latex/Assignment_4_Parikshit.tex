@@ -47,11 +47,11 @@ For a symmetric matrix $A [ n \times n]$, with elements normally distributed acc
 
 \begin{equation} \label{Eq1}
 A_{ii} \sim N(0,2)(1\leq i\leq n) \quad\text{}\quad
-A_{ij} \sim N(0,1)(1\leq i\leq j\leq n) \quad\text{}\quad
+A_{ij} \sim N(0,1)(1\leq i\leq n \; 2\leq j\leq n) \quad\text{}\quad
 A^{t}=A
 \end{equation}
 
-For a random matrix $A$, the maximum the Eigenvalues, $\lambda _{max}$ should be a random number and the distribution of such maximum Eigenvalues can be determined. 
+For a random matrix $A$, the maximum of the Eigenvalues, $\lambda _{max}$ should be a random number and the distribution of such maximum Eigenvalues can be determined. 
 
 \section{Methodology}
    \subsection{Objective}
@@ -112,7 +112,7 @@ Start implementation Master vs Slave method\\~\\
 \label{algomain}
 \end{algorithm}
 
-For the implementation of the above code, the random numbers were seeded using the Marsenne Twister pseudorandom number generator included in the Intel Math Kernel Library (MKL). For computing the maximum eigenvalues, both the shifted power iterations and the LAPACK subroutine \emph{dsyev} were implemented. The LAPACK subroutine is a $\mathcal{O}(n^3)$ while the power iteartion is a $\mathcal{O}(n^2)$ method. While this means the power method is normally much quicker, there can be issues related to convergence especially if the Eigenvalues are very close. Furthermore, the compute time in the power iteration would also depend on the initial approximation of the Eigenvector.
+For the implementation of the above code, the random numbers were seeded using the Marsenne Twister pseudorandom number generator included in the Intel Math Kernel Library (MKL). For computing the maximum eigenvalues, both the shifted power iterations and the LAPACK subroutine \emph{DSYEV} were implemented. The LAPACK subroutine is a $\mathcal{O}(n^3)$ while the power iteration is a $\mathcal{O}(n^2)$ method. While this means the power method is normally much quicker, there can be issues related to convergence especially if the Eigenvalues are very close. Furthermore, the compute time in the power iteration would also depend on the initial approximation of the Eigenvector.
 
 \subsection{Computational Experiments}
 The following studies were performed as part of this experiment:
@@ -127,7 +127,7 @@ The following studies were performed as part of this experiment:
 The obtained frequency distribution for a matrix of size $1000 \times 1000$ for $1000$ matrices has been shown below in figure~\ref{fig:dist}
  \begin{figure}[h]
 		\centering
-		\includegraphics[width=0.75\textwidth]{Figures/n1000.png}
+		\includegraphics[width=0.75\textwidth]{Figures/distribution.pdf}
 		\caption{Distribution of maximum Eigenvalues for a matrix of size $1000 \times 1000$ for $1000$ matrices.}
 		\label{fig:dist}
 	\end{figure}
@@ -135,13 +135,13 @@ The obtained frequency distribution for a matrix of size $1000 \times 1000$ for 
 The obtained random distributions of maximum Eigenvalues for different matrix sizes $n$ and different numbers of desired Eigenvalues $N$ using both BLAS and shifted power iterations for different matrix sizes are presented in figures~\ref{fig:1}~\&~\ref{fig:2}.
         \begin{figure}[h]
 		\centering
-		\includegraphics[width=0.75\textwidth]{Figures/D_power.pdf}
+		\includegraphics[width=0.75\textwidth]{Figures/PM_new.pdf}
 		\caption{Distribution of maximum Eigenvalues for computations using shifted power iterations.}
 		\label{fig:1}
 	\end{figure}
 	\begin{figure}[h]
 		\centering
-		\includegraphics[width=0.75\textwidth]{Figures/D_Lapack.pdf}
+		\includegraphics[width=0.75\textwidth]{Figures/Lapack_new.pdf}
 		\caption{Distribution of maximum Eigenvalues for computations using LAPACK.}
 		\label{fig:2}
 	\end{figure}
@@ -153,9 +153,9 @@ The obtained random distributions of maximum Eigenvalues for different matrix si
 		\caption{Analysis of the obtained maximum Eigenvalue distributions.}
 		\label{fig:3}
 	\end{figure}
-The results show that the Eigenvalues generally show a log-normal distribution with an increase in the average values as the matrix size was increased.        
+The results show that the Eigenvalues generally show a Tracy-Widom distribution that has a Gaussian distribution as one limit (small matrices) and a log-normal distribution as the other limit (very large matrices). The results also show an increase in the average of maximum Eigenvalues as the matrix size is increased.        
 
-The Eigenvalues were computed for different matrix sizes $n$ and different numbers of desired Eigenvalues $N$ using both BLAS and shifted power iterations and the obtained wallclock times were compared. The results are presented below in  figure~\ref{fig:walltime}.
+The Eigenvalues were computed for different matrix sizes $n$ and different numbers of desired Eigenvalues $N$ using both BLAS and shifted power iterations and the obtained wallclock times were compared. The results are presented below in  figure~\ref{fig:walltime}~\&~\ref{fig:walltime2}.
         	\begin{figure}[h]
 		\centering
 		\includegraphics[width=0.95\textwidth]{Figures/eff.png}
@@ -163,7 +163,16 @@ The Eigenvalues were computed for different matrix sizes $n$ and different numbe
 		\label{fig:walltime}
 	        \end{figure}
 
- In the available literature, Almeida et al. \cite{Almeida:2013:MEC:2509348.2509354} have shown that wallclock times are inversely proportional to the number of processors and Elenin et al. \cite{Elenin2013EvaluationOM}, have shown that wallclock times as small as those of the order of 0.65s can be obtained. The data shows, as expected, a decrease in wall-clock times as the number of processors is increased from one to three. However, since a further increase means that no physical cores are available and hyperthreads are used, we do not observe any further decrease in wallclock times for an increase in total number of processors beyond 4. Furthermore, the wallclock times of the  power iterations were observed to be smaller than the wallclock times using LAPACK.
+                \begin{figure}[h]
+		\centering
+		\includegraphics[width=0.95\textwidth]{Figures/wtime_slaves.pdf}
+		\caption{Comparison of wallclock times}
+		\label{fig:walltime2}
+	        \end{figure}
+
+                
+
+ In the available literature, Almeida et al. \cite{Almeida:2013:MEC:2509348.2509354} have shown that wallclock times are inversely proportional to the number of processors and Elenin et al. \cite{Elenin2013EvaluationOM}, have shown that wallclock times as small as those of the order of 0.65s can be obtained.  As seen in figure~\ref{fig:walltime2}, the results as, sho wexpected, a decrease in wall-clock times as the number of processors is increased from one to three. However, since a further increase means that no physical cores are available and hyperthreads are used, we do not observe any further decrease in wallclock times for an increase in total number of processors beyond 4. Furthermore, the wallclock times of the  power iterations were observed to be smaller than the wallclock times using LAPACK.
 
 
 \section{Conclusion}
@@ -175,3 +184,4 @@ In conclusion, the computational experiments verify the expected outcomes of the
 \bibliography{Assignment_4_Parikshit}
 
 \end{document}  
+\grid
