@@ -8,15 +8,16 @@
     use auxiliary
     implicit none
     logical :: ok
-    integer :: ierr, STATUS(MPI_STATUS_SIZE), seed_slaves
+    integer :: ierr, STATUS(MPI_STATUS_SIZE), seed_slaves, N_max, n_random, P_R
     double precision :: wtime, eps, error, shift
     double precision, allocatable, dimension(:,:) :: A,C
     double precision, allocatable, dimension(:,:) :: DUMMY
-    double precision, allocatable, dimension(:) :: G, v, v_next, v_error
+    double precision, allocatable, dimension(:) :: G, v, v_next, v_error,R
 
     ! Initialize parameters (n = Matrix Size (nxn); Ni = Desired number of matrices/max eigenvalues to be collected by the Master)
     n=1000
     Ni=10000
+    n_random=n*(n+1)/2       ! Number of random numbers to be generated
 
     ! File 'Frequency_distribution' contains a list of maximum eigenvalues
     open(14,file='Frequency_distribution')
@@ -37,41 +38,55 @@
           allocate(v(n))
           allocate(v_next(n))
           allocate(v_error(n))
+          allocate(R(n_random))
           
           ! Initialize power iteration parameters.	
-          shift=10d0               ! Shifting parameter used in the power iteration
+          shift=100d0              ! Shifting parameter used in the power iteration
           eps=1d-5                 ! Tolerance
           v=1d0                    ! Eigenvector for first iteration
+          N_max=1000               ! Maximum number of power iterations
           
           do while (flag.eq.1)
              
              call open_random_stream
 
-             ! Make random matrix (NOTE: Here all the entries will be N(0,1))
-             ierr=vdrnggaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF,stream,n*n,A,0d0,1d0) ! Draw (n+1) numbers from standard normal distribution.
-
+             ! Make random vector R with (n*(n+1)/2) entries (NOTE: Here all the entries will be N(0,1))
+             ierr=vdrnggaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF,stream,n_random,R,0d0,1d0) ! Draw (n+1) numbers from standard normal distribution.
+             
+             ! Counter to point to location in the random vector R
+             P_R = 1;
              ! Generate a symmetric matrix using the PRN generator
              do i =1,n
-                do j=i,n
+                do j=1,n-i+1
+                   A(i,j) = R(P_R) ! Pick a random number at P_R location in vector R
                    A(j,i) = A(i,j)
                    if (i.eq.j) then
                       A(i,j) = 2*A(i,j) + shift
                    end if
+                   P_R=P_R+1
                 end do
              end do
              
              ! Implementation of shifted power iterations using LAPACK subroutine dgemv for matrix-vector multiplication
              error = eps+1d0 ! Initial error
+             i = 0           ! Reset counter for the next loop.
+
              
+             ! Power iteration loop
              do while (error.gt.eps)
-                call dgemv('n',n,n, 1d0,A,n,v,1,0d0,v_next,1)
-                v_next = v_next/dnorm2(v_next)
-                v_error = v_next - v
-                error=dnorm2(v_error)
-                v = v_next
+                if (i.lt.N_max) then
+                   call dgemv('n',n,n, 1d0,A,n,v,1,0d0,v_next,1)
+                   v_next = v_next/dnorm2(v_next)
+                   v_error = v_next - v
+                   error=dnorm2(v_error)
+                   v = v_next
+                   i = i+1
+                else
+                   exit;
+                end if
              end do
              
-             call dgemv('n',n,n, 1d0,A,n,v,1,0d0,v_next,1) ! Calculate shift Eigenvalue from Eigenvector
+             call dgemv('n',n,n, 1d0,A,n,v,1,0d0,v_next,1) ! Calculate shifted Eigenvalue from Eigenvector
             
              EV = (ddot_product(v_next,v)/dnorm2(v)) - shift ! Maximum Eigenvalue obtained by shifting back
              
@@ -96,10 +111,10 @@
              
              if (job_count.le.Ni-num_procs+1) then
                 flag=1
-                call mpi_send(flag,1,MPI_DOUBLE_PRECISION,STATUS(3),DEFAULT_TAG,MPI_COMM_WORLD,ierr) ! Send continue flag to slave
+                call mpi_send(flag,1,MPI_DOUBLE_PRECISION,STATUS(MPI_SOURCE),DEFAULT_TAG,MPI_COMM_WORLD,ierr) ! Send continue flag to slave
              else 
                 flag=0
-                call mpi_send(flag,1,MPI_DOUBLE_PRECISION,STATUS(3),DEFAULT_TAG,MPI_COMM_WORLD,ierr)
+                call mpi_send(flag,1,MPI_DOUBLE_PRECISION,STATUS(MPI_SOURCE),DEFAULT_TAG,MPI_COMM_WORLD,ierr) ! Send stop flag to slave
              end if
              ith = ith+1
           end do

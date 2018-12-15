@@ -1,0 +1,21 @@
+1) While the error handling for power method has been implemented in the present using a less sophisticated approach, the following text explains a better way to implement it.
+	
+	While (No. of iterations (n) < Max iterations)
+		Compute new Eigenvector V(n)
+		Compute the error (Error) between Eigenvector in this iteration and the previous V(n)-V(n-1)
+		If (Error < Tolerance)
+			Exit Loop
+		Else
+			Update the iteration step (n = n + 1)
+		End If
+	End While
+
+	If (Error < Tolerance)
+		Compute the Eigenvalue and send to master
+	Else
+		Generate new matrix and repeat the power iteration
+	End If
+
+
+2) For now the shift has been fixed to 1000d0 and it is expected to be make the code work. However, it would be better to determine the required shift a-priori using linear algebra principles or use the power iteration for a small number
+   of matrices to get an expectation value of max Eigenvalues and fix the shift accordingly. This hasn't been implemented in the current code due to lack of time.
